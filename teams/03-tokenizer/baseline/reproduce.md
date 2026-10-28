@@ -129,3 +129,24 @@ Checked with `compare_ref.py` (in this folder). Run it from the BrahmicTokenizer
 
 - FLORES was extracted to `C:\tmp\flores200_dataset`, because the script reads `/tmp/flores200_dataset`.
 - Comparator tokenizers that did not load: Gemma-3-1B and Llama-3.1-8B (gated on Hugging Face, access not yet granted) and Krutrim-1 (needs torch). They do not affect the BrahmicTokenizer-131K baseline.
+
+## 4. Independent second reproduction (macOS) and harness check
+
+The same reproduction was re-run on 27 Oct 2026 on an Apple Silicon Mac. Environment: Python 3.11.5, tokenizers 0.23.3, transformers 5.21.0, tiktoken 0.14.0, datasets 5.1.0.
+
+- `tokenizer.json` sha256: `01d968a7970b029c071b29f060abf6104b66168dedf2ff3b1a0290a545739fff`. It matches the baseline line in `../v0/SHA256SUMS`. v0 itself renames reserved slots and has its own sha256; see `../v0/special_slots.md`.
+- FLORES tarball sha256: `b8b0b76783024b85797e5cc75064eb83fc5288b41e9654dabc7be6ae944011f6`.
+- All 4 verify scripts exit 0 with the same output as sections 1.1–1.4.
+- FLORES-200 fertility matches the table in section 2, with |Δ| = 0.0000 on all 13 columns.
+
+The team harness re-implements the same fertility method. It exits 1 if any column is more than 0.001 from the reference:
+
+```bash
+cd teams/03-tokenizer/harness
+python run_harness.py --tokenizers BrahmicTokenizer-131K --check-reference \
+    --brahmic-dir /path/to/BrahmicTokenizer-131K --flores-dir /path/to/flores200_dataset
+# max |d| = 0.0000 -> PASS   (exit 0)
+```
+
+The harness also loads Gemma-4 and the other comparators without an HF login (pinned revisions, `trust_remote_code=False`).
+The comparator rows are in `../COMPARE.md`.
